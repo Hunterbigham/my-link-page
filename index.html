@@ -202,7 +202,15 @@ a:focus-visible,button:focus-visible{outline:3px solid #fff1ec;outline-offset:3p
   // Per-channel tracking: tylerandace.fyi/?from=bsky etc. picks the matching tlref
   var SRC = { "bsky": "RU86", "ig-tyler": "EE41", "ig-ace": "JB19", "ig-joint": "LK30", "tiktok": "RA86", "xtyler": "FA93", "xace": "ZQ46", "fb-tyler": "RD17", "fb-ace": "OI57" };
   var from = (new URLSearchParams(location.search).get("from") || "").toLowerCase();
-  function track(u) { return (SRC.hasOwnProperty(from) && u.indexOf("tlref=EA06") > -1) ? u.replace("tlref=EA06", "tlref=" + SRC[from]) : u; }
+  // OnlyFans tracking links per channel (VIP = button 0, free = button 1); "direct" = plain tylerandace.fyi or unknown label
+  var OFV = { "bsky": "c20", "ig-tyler": "c21", "ig-ace": "c22", "ig-joint": "c23", "tiktok": "c24", "xtyler": "c25", "xace": "c26", "fb-tyler": "c27", "fb-ace": "c28", "direct": "c29" };
+  var OFF = { "bsky": "c1", "ig-tyler": "c2", "ig-ace": "c3", "ig-joint": "c4", "tiktok": "c5", "xtyler": "c6", "xace": "c7", "fb-tyler": "c8", "fb-ace": "c9", "direct": "c10" };
+  function track(u, k) {
+    var key = SRC.hasOwnProperty(from) ? from : "direct";
+    if (k === 0 && OFV.hasOwnProperty(key)) return u + "/" + OFV[key];
+    if (k === 1 && OFF.hasOwnProperty(key)) return u + "/" + OFF[key];
+    return (SRC.hasOwnProperty(from) && u.indexOf("tlref=EA06") > -1) ? u.replace("tlref=EA06", "tlref=" + SRC[from]) : u;
+  }
   // Click counter (GoatCounter: tylerandace) - counts visits and button clicks per ?from= channel
   var src = SRC.hasOwnProperty(from) ? from : (from ? "other" : "direct");
   var NAMES = ["onlyfans-vip", "onlyfans-free", "jff", "site-tyler", "site-ace", "podcast", "youtube", "article"], pname = null;
@@ -236,7 +244,7 @@ a:focus-visible,button:focus-visible{outline:3px solid #fff1ec;outline-offset:3p
     var t = e.target.closest ? e.target : e.target.parentElement;
     var b = t.closest("[data-k]");
     if (b) {
-      var k = Number(b.getAttribute("data-k")), u = track(build(T[k]));
+      var k = Number(b.getAttribute("data-k")), u = track(build(T[k]), k);
       pname = NAMES[k] || ("button-" + k);
       if (k >= 5) { gc(pname); openUrl(u); } else show(u);
       return;
